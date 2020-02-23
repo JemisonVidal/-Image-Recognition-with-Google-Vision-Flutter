@@ -1,4 +1,4 @@
-package com.example.camera
+package com.vidaljemison.mlkitocr
 
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterActivity
