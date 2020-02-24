@@ -2,6 +2,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
+import 'dart:convert';
+import 'package:aws_ai/src/RekognitionHandler.dart';
+
+const String GOOGLE_VISION = 'GOOGLE_VISION';
+const String AWS_REKOGNITION = 'AWS_REKOGNITION';
 
 void main() =>
     runApp(new MaterialApp(title: "Camera App", home: LandingScreen()));
@@ -14,18 +19,21 @@ class LandingScreen extends StatefulWidget {
 class _LandingScreenState extends State<LandingScreen> {
   File imageFile;
   List<ImageLabel> _currentLabelLabels = <ImageLabel>[];
+  String _currentLabelAWS;
+  String _selectedScanner = GOOGLE_VISION;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text("Main Screen"),
+          title: Text("Suprimentos"),
         ),
         body: Container(
           child: Center(
               child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: <Widget>[
+              _buildScanner(context),
               _decideImageView(),
               RaisedButton(
                 onPressed: () {
@@ -35,6 +43,9 @@ class _LandingScreenState extends State<LandingScreen> {
               ),
               _currentLabelLabels.length > 0
                   ? buildLabelList(_currentLabelLabels)
+                  : Text(""),
+              _currentLabelAWS != null
+                  ? buildJSONAWS(_currentLabelAWS)
                   : Text("")
             ],
           )),
@@ -48,7 +59,12 @@ class _LandingScreenState extends State<LandingScreen> {
     });
 
     Navigator.of(context).pop();
-    readImage();
+
+    if (_selectedScanner == GOOGLE_VISION) {
+      readImage();
+    } else {
+      readImageAWS();
+    }
   }
 
   _openCamera(BuildContext context) async {
@@ -57,7 +73,11 @@ class _LandingScreenState extends State<LandingScreen> {
       imageFile = picture;
     });
     Navigator.of(context).pop();
-    readImage();
+    if (_selectedScanner == GOOGLE_VISION) {
+      readImage();
+    } else {
+      readImageAWS();
+    }
   }
 
   Future readImage() async {
@@ -71,10 +91,33 @@ class _LandingScreenState extends State<LandingScreen> {
       final String text = label.text;
       final String entityId = label.entityId;
       final double confidence = label.confidence;
-      print(text);
+      // print(text);
     }
     setState(() {
       _currentLabelLabels = labelsImage;
+    });
+  }
+
+  Future readImageAWS() async {
+    String accessKey, secretKey, region;
+    RekognitionHandler rekognition =
+        new RekognitionHandler(accessKey, secretKey, region);
+    String labelsArray = await rekognition.detectLabels(imageFile);
+
+    //final labelsJson = json.decode(labelsArray);
+    Map<String, dynamic> imageLabel = jsonDecode(labelsArray);
+    setState(() {
+      _currentLabelAWS = 'Name: ' +
+          imageLabel['Labels'][0]['Name'] +
+          '\n' +
+          'Name: ' +
+          imageLabel['Labels'][1]['Name'] +
+          '\n' +
+          'Name: ' +
+          imageLabel['Labels'][2]['Name'] +
+          '\n' +
+          'Name: ' +
+          imageLabel['Labels'][3]['Name'];
     });
   }
 
@@ -104,6 +147,33 @@ class _LandingScreenState extends State<LandingScreen> {
             )),
           );
         });
+  }
+
+  Widget _buildScanner(BuildContext context) {
+    return Wrap(
+      children: <Widget>[
+        RadioListTile<String>(
+          title: Text('Google Vision'),
+          groupValue: _selectedScanner,
+          value: GOOGLE_VISION,
+          onChanged: onScannerSelected,
+        ),
+        RadioListTile<String>(
+          title: Text('AWS Rekognition'),
+          groupValue: _selectedScanner,
+          value: AWS_REKOGNITION,
+          onChanged: onScannerSelected,
+        ),
+      ],
+    );
+  }
+
+  void onScannerSelected(String scanner) {
+    setState(() {
+      _selectedScanner = scanner;
+      _currentLabelLabels = <ImageLabel>[];
+      _currentLabelAWS = null;
+    });
   }
 
   Widget _decideImageView() {
@@ -150,6 +220,15 @@ class _LandingScreenState extends State<LandingScreen> {
         "$text",
       ),
       dense: true,
+    );
+  }
+
+  Widget buildJSONAWS(String text) {
+    return Expanded(
+      flex: 1,
+      child: Container(
+        child: Text(text),
+      ),
     );
   }
 }
