@@ -1,16 +1,6 @@
-# camera
+#Projeto criado para entender e validar as técnologias de reconhecimento de imagens;
+Este app tem a intensão de validar código de implementação,tempo de resposta, precisão das informações e custo;
 
-A new Flutter project.
+Para o projeto funcionar corretamente, realize o download do projeto, atualize as libs, e faça a configuração da conta google e da conta aws ao projeto.
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+![IMG_20200721_174157](https://user-images.githubusercontent.com/5350571/88105792-dea49c80-cb7a-11ea-8347-e13f7e814ed8.jpg)
